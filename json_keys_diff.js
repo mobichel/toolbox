@@ -4,6 +4,7 @@ const fs = require('fs');
 // Check if command line arguments are provided
 if (process.argv.length < 4) {
   console.log('Usage: node index.js file1.json file2.json');
+  console.log('Add a -v flag to print the values of the keys');
   process.exit(1);
 }
 
@@ -34,6 +35,23 @@ function getKeys(obj) {
   return keys;
 }
 
+function getPropertyByPath(obj, path) {
+  // Split the path into an array of property names
+  const props = path.split('.');
+  
+  // Loop through each property in the path and traverse the object to get the value
+  let val = obj;
+  for (let i = 0; i < props.length; i++) {
+    const prop = props[i];
+    val = val[prop];
+    if (val === undefined) {
+      // Property not found, return undefined
+      return undefined;
+    }
+  }
+  return val;
+}
+
 // Get the keys for each object
 const keys1 = getKeys(obj1);
 const keys2 = getKeys(obj2);
@@ -42,10 +60,25 @@ const keys2 = getKeys(obj2);
 const diff1 = keys2.filter(key => !keys1.includes(key));
 
 // Print the difference
-console.log(`Keys present in ${filePath2} but not in ${filePath1}:\n${diff1.join('\n')}`);
+if (process.argv.includes('-v')) {
+  console.log(`Keys present in ${filePath2} but not in ${filePath1}:`);
+  diff1.forEach(key => {
+    console.log(`${key}: ${getPropertyByPath(obj2, key)}`);
+  });
+} else {
+  console.log(`Keys present in ${filePath2} but not in ${filePath1}:\n${diff1.join('\n')}`);
+}
 
 // Find the difference in keys
 const diff2 = keys1.filter(key => !keys2.includes(key));
 
 // Print the difference
-console.log(`Keys present in ${filePath1} but not in ${filePath2}:\n${diff2.join('\n')}`);
+if (process.argv.includes('-v')) {
+  console.log(`Keys present in ${filePath1} but not in ${filePath2}:`);
+  diff2.forEach(key => {
+    console.log(`${key}: ${getPropertyByPath(obj1, key)}`);
+  });
+} else {
+  console.log(`Keys present in ${filePath1} but not in ${filePath2}:\n${diff2.join('\n')}`);
+}
+
